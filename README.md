@@ -54,3 +54,4 @@ links to qvs files
 ## Repository Structure
 
 ## Disclaimer
+Confidentiality notice: This case study is based on a production analytics platform. Company-specific identifiers, brands, account names, financial values and selected implementation details have been anonymized or modified. The code included in this repository is a simplified portfolio representation of the production solution and does not contain proprietary source code or credentials.
