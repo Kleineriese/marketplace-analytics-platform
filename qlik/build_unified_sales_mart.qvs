@@ -1,0 +1,204 @@
+// =====================================================
+// 03_BUILD_UNIFIED_SALES_MART
+//
+// Unified marketplace sales fact
+//
+// Grain:
+// one marketplace order line / product
+//
+// Product relation:
+// product_key = cabinet_id | product_id
+// =====================================================
+
+
+// -----------------------------------------------------
+// 1. Wildberries
+// -----------------------------------------------------
+
+mart_unified_sales_fact:
+LOAD
+    'WB'                                        AS stg_source,
+
+    sales_schema,
+
+    product_key,
+    product_id,
+    order_number,
+
+    Date(Floor(order_date))                     AS order_date,
+    Date(Floor(sale_date))                      AS sale_date,
+    Date(Floor(cancel_date))                    AS cancel_date,
+    Date(Floor(return_date))                    AS return_date,
+
+    warehouse_name,
+    country,
+    oblast_okrug,
+    region,
+
+    your_price,
+    paid_by_customer_rub,
+    price_before_discounts,
+    discount_percent,
+    spp_percent,
+    spp_amount,
+
+    order_qty,
+    sale_qty,
+    return_qty,
+    cancel_qty,
+    buyout_qty,
+
+    If(cancel_qty <> 0, 1, 0)                   AS IsCancel,
+    If(sale_qty   <> 0, 1, 0)                   AS IsSale,
+    If(return_qty <> 0, 1, 0)                   AS IsReturn,
+    If(buyout_qty <> 0, 1, 0)                   AS IsBuyout,
+
+    If(
+        cancel_qty <> 0
+        AND Not IsNull(cancel_date),
+
+        Round((cancel_date - order_date) * 24, 0.01),
+
+        If(
+            buyout_qty <> 0
+            AND Not IsNull(sale_date),
+
+            Round((sale_date - order_date) * 24, 0.01),
+
+            Round((Today() - order_date) * 24, 0.01)
+        )
+    )                                           AS order_lifetime_hours
+
+FROM [lib://QVD_STG_WB/stg_wb_orders_sales.qvd] (qvd);
+
+
+// -----------------------------------------------------
+// 2. Ozon
+// -----------------------------------------------------
+
+CONCATENATE (mart_unified_sales_fact)
+LOAD
+    'OZON'                                      AS stg_source,
+
+    sales_schema,
+
+    product_key,
+    product_id,
+    order_number,
+
+    Date(Floor(order_date))                     AS order_date,
+    Date(Floor(sale_date))                      AS sale_date,
+    Date(Floor(cancel_date))                    AS cancel_date,
+    Date(Floor(return_date))                    AS return_date,
+
+    warehouse_name,
+    Null()                                      AS country,
+    Null()                                      AS oblast_okrug,
+    region,
+
+    your_price,
+    paid_by_customer_rub,
+    price_before_discounts,
+    discount_percent,
+    spp_percent,
+    spp_amount,
+
+    order_qty,
+    sale_qty,
+    return_qty,
+    cancel_qty,
+    buyout_qty,
+
+    If(cancel_qty <> 0, 1, 0)                   AS IsCancel,
+    If(sale_qty   <> 0, 1, 0)                   AS IsSale,
+    If(return_qty <> 0, 1, 0)                   AS IsReturn,
+    If(buyout_qty <> 0, 1, 0)                   AS IsBuyout,
+
+    If(
+        cancel_qty <> 0
+        AND Not IsNull(cancel_date),
+
+        Round((cancel_date - order_date) * 24, 0.01),
+
+        If(
+            buyout_qty <> 0
+            AND Not IsNull(sale_date),
+
+            Round((sale_date - order_date) * 24, 0.01),
+
+            Round((Today() - order_date) * 24, 0.01)
+        )
+    )                                           AS order_lifetime_hours
+
+FROM [lib://QVD_STG_OZON/stg_ozon_orders_sales.qvd] (qvd);
+
+
+// -----------------------------------------------------
+// 3. Yandex Market
+// -----------------------------------------------------
+
+CONCATENATE (mart_unified_sales_fact)
+LOAD
+    'YM'                                        AS stg_source,
+
+    sales_schema,
+
+    product_key,
+    product_id,
+    order_number,
+
+    Date(Floor(order_date))                     AS order_date,
+    Date(Floor(sale_date))                      AS sale_date,
+    Date(Floor(cancel_date))                    AS cancel_date,
+    Date(Floor(return_date))                    AS return_date,
+
+    warehouse_name,
+    Null()                                      AS country,
+    Null()                                      AS oblast_okrug,
+    region,
+
+    your_price,
+    paid_by_customer_rub,
+    price_before_discounts,
+    discount_percent,
+    spp_percent,
+    spp_amount,
+
+    order_qty,
+    sale_qty,
+    return_qty,
+    cancel_qty,
+    buyout_qty,
+
+    If(cancel_qty <> 0, 1, 0)                   AS IsCancel,
+    If(sale_qty   <> 0, 1, 0)                   AS IsSale,
+    If(return_qty <> 0, 1, 0)                   AS IsReturn,
+    If(buyout_qty <> 0, 1, 0)                   AS IsBuyout,
+
+    If(
+        cancel_qty <> 0
+        AND Not IsNull(cancel_date),
+
+        Round((cancel_date - order_date) * 24, 0.01),
+
+        If(
+            buyout_qty <> 0
+            AND Not IsNull(sale_date),
+
+            Round((sale_date - order_date) * 24, 0.01),
+
+            Round((Today() - order_date) * 24, 0.01)
+        )
+    )                                           AS order_lifetime_hours
+
+FROM [lib://QVD_STG_YM/stg_ym_orders_sales.qvd] (qvd);
+
+
+// -----------------------------------------------------
+// 4. Persist mart
+// -----------------------------------------------------
+
+STORE mart_unified_sales_fact
+INTO [lib://QVD_MART/mart_unified_sales_fact.qvd] (qvd);
+
+DROP TABLE mart_unified_sales_fact;

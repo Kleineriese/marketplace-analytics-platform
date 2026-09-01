@@ -1,0 +1,156 @@
+// =====================================================
+// 03_BUILD_PRODUCT_MODEL
+//
+// dim_marketplace_product:
+//   1 row = 1 marketplace listing
+//
+// dim_product_master:
+//   1 row = 1 physical product
+//
+// Business key of physical product:
+//   code_1c
+// =====================================================
+
+
+// -----------------------------------------------------
+// Top-brand mapping
+// -----------------------------------------------------
+
+BrandMap:
+MAPPING LOAD
+    name,
+    'Да'
+FROM [lib://QVD_RAW_DICTS/raw_models_brand.qvd] (qvd);
+
+
+// -----------------------------------------------------
+// 1. Marketplace listings — WB
+// -----------------------------------------------------
+
+dim_marketplace_product:
+LOAD
+    cabinet_id & '|' & id                      AS product_key,
+
+    id                                          AS product_id,
+    cabinet_id,
+
+    'WB'                                        AS marketplace,
+
+    nmId                                        AS marketplace_product_id,
+    vendorCode                                  AS mp_article,
+
+    code_1c,
+
+    title                                       AS product_name,
+    brandName                                   AS brand,
+    ApplyMap('BrandMap', brandName, 'Нет')      AS top_brand,
+
+    subjectName                                 AS marketplace_type_name
+
+FROM [lib://QVD_RAW_WB/raw_models_productcard.qvd] (qvd);
+
+
+// -----------------------------------------------------
+// 2. Marketplace listings — Ozon
+// -----------------------------------------------------
+
+CONCATENATE (dim_marketplace_product)
+LOAD
+    cabinet_id & '|' & id                      AS product_key,
+
+    id                                          AS product_id,
+    cabinet_id,
+
+    'OZON'                                      AS marketplace,
+
+    sku                                         AS marketplace_product_id,
+    offer_id                                    AS mp_article,
+
+    code_1c,
+
+    name                                        AS product_name,
+    brand_name                                  AS brand,
+    ApplyMap('BrandMap', brand_name, 'Нет')     AS top_brand,
+
+    type_id                                     AS marketplace_type_name
+
+FROM [lib://QVD_RAW_OZON/raw_models_productozon.qvd] (qvd);
+
+
+// -----------------------------------------------------
+// 3. Marketplace listings — Yandex Market
+// -----------------------------------------------------
+
+CONCATENATE (dim_marketplace_product)
+LOAD
+    cabinet_id & '|' & id                      AS product_key,
+
+    id                                          AS product_id,
+    cabinet_id,
+
+    'YM'                                        AS marketplace,
+
+    marketSku                                   AS marketplace_product_id,
+    shop_sku                                    AS mp_article,
+
+    code_1c,
+
+    product_name,
+    brandName                                   AS brand,
+    ApplyMap('BrandMap', brandName, 'Нет')      AS top_brand,
+
+    mapping_marketCategoryName                  AS marketplace_type_name
+
+FROM [lib://QVD_RAW_YM/raw_models_productyandex.qvd] (qvd);
+
+
+// -----------------------------------------------------
+// 4. Physical product master
+//
+// code_1c = business key shared across marketplaces
+// -----------------------------------------------------
+
+dim_product_master:
+NOCONCATENATE
+LOAD
+    code_1c,
+
+    MaxString(
+        If(
+            Len(Trim(product_name)) > 0,
+            product_name
+        )
+    )                                           AS product_name,
+
+    MaxString(
+        If(
+            Len(Trim(brand)) > 0,
+            brand
+        )
+    )                                           AS brand,
+
+    If(
+        Max(If(top_brand = 'Да', 1, 0)) = 1,
+        'Да',
+        'Нет'
+    )                                           AS top_brand
+
+RESIDENT dim_marketplace_product
+
+WHERE Len(Trim(code_1c)) > 0
+
+GROUP BY code_1c;
+
+
+// -----------------------------------------------------
+// 5. Persist dimensions
+// -----------------------------------------------------
+
+STORE dim_marketplace_product
+INTO [lib://QVD_MART/dim_marketplace_product.qvd] (qvd);
+
+STORE dim_product_master
+INTO [lib://QVD_MART/dim_product_master.qvd] (qvd);
+
+DROP TABLE dim_marketplace_product;
+DROP TABLE dim_product_master;

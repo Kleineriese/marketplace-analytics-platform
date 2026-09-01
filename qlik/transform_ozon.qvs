@@ -1,0 +1,248 @@
+// =====================================================
+// 02_TRANSFORM_OZON
+// FBO + FBS + Returns + Currency normalization
+// =====================================================
+
+
+// -----------------------------------------------------
+// 1. FBO postings
+// -----------------------------------------------------
+
+ozon_postings:
+LOAD
+    'FBO'                                       AS sales_schema,
+
+    cabinet_id,
+    product_id,
+    cabinet_id & '|' & product_id              AS product_key,
+
+    order_number,
+    posting_number,
+
+    Timestamp(accepted_at + 3/24)               AS order_date,
+    Timestamp(delivery_date + 3/24)             AS sale_date,
+    Null()                                      AS cancel_date,
+
+    row_status,
+
+    shipment_warehouse                          AS warehouse_name,
+    delivery_region                             AS region,
+
+    your_price,
+    paid_by_customer,
+    customer_currency_code,
+
+    price_before_discounts,
+    discount_percent,
+
+    quantity,
+
+    Date(Floor(accepted_at + 3/24))             AS transaction_date
+
+FROM [lib://QVD_RAW_OZON/raw_models_postingreportfbo.qvd] (qvd);
+
+
+// -----------------------------------------------------
+// 2. FBS postings
+// -----------------------------------------------------
+
+CONCATENATE (ozon_postings)
+LOAD
+    'FBS'                                       AS sales_schema,
+
+    cabinet_id,
+    product_id,
+    cabinet_id & '|' & product_id              AS product_key,
+
+    order_number,
+    posting_number,
+
+    Timestamp(accepted_at + 3/24)               AS order_date,
+    Timestamp(delivery_date + 3/24)             AS sale_date,
+    Timestamp(cancellation_date + 3/24)         AS cancel_date,
+
+    row_status,
+
+    shipment_warehouse                          AS warehouse_name,
+    delivery_region                             AS region,
+
+    your_price,
+    paid_by_customer,
+    customer_currency_code,
+
+    price_before_discounts,
+    discount_percent,
+
+    quantity,
+
+    Date(Floor(accepted_at + 3/24))             AS transaction_date
+
+FROM [lib://QVD_RAW_OZON/raw_models_postingreportfbs.qvd] (qvd);
+
+
+// -----------------------------------------------------
+// 3. Currency rates
+//
+// transaction_date + currency
+//          ↓
+// dim_currency_rate
+//          ↓
+// amount_rub
+//
+// dim_currency_rate contains RUB = 1 and historical FX
+// -----------------------------------------------------
+
+LEFT JOIN (ozon_postings)
+LOAD
+    transaction_date,
+    currency                                    AS customer_currency_code,
+    rate_to_rub
+
+FROM [lib://QVD_MART/dim_currency_rate.qvd] (qvd);
+
+
+// -----------------------------------------------------
+// 4. Returns
+// -----------------------------------------------------
+
+ozon_returns_raw:
+LOAD
+    product_id,
+    shipment_number                             AS posting_number,
+    Timestamp(return_datetime + 3/24)           AS return_date
+
+FROM [lib://QVD_RAW_OZON/raw_models_returnozon.qvd] (qvd);
+
+
+ozon_returns:
+LOAD
+    product_id,
+    posting_number,
+
+    Count(posting_number)                       AS return_qty_raw,
+    Min(return_date)                            AS return_date
+
+RESIDENT ozon_returns_raw
+
+GROUP BY
+    product_id,
+    posting_number;
+
+DROP TABLE ozon_returns_raw;
+
+
+LEFT JOIN (ozon_postings)
+LOAD
+    product_id,
+    posting_number,
+    return_qty_raw,
+    return_date
+RESIDENT ozon_returns;
+
+DROP TABLE ozon_returns;
+
+
+// -----------------------------------------------------
+// 5. Data-quality check
+//
+// Source systems may occasionally contain more return
+// records than ordered units. Returns are capped by
+// ordered quantity.
+// -----------------------------------------------------
+
+ozon_postings_checked:
+NOCONCATENATE
+LOAD
+    *,
+
+    If(
+        Alt(return_qty_raw, 0) > quantity,
+        quantity,
+        Alt(return_qty_raw, 0)
+    )                                           AS return_qty_checked
+
+RESIDENT ozon_postings;
+
+DROP TABLE ozon_postings;
+
+
+// -----------------------------------------------------
+// 6. Final Ozon staging
+// -----------------------------------------------------
+
+stg_ozon_orders_sales:
+NOCONCATENATE
+LOAD
+    product_key,
+    cabinet_id,
+    product_id,
+
+    order_number,
+
+    order_date,
+    sale_date,
+    cancel_date,
+
+    If(
+        row_status = 'Доставлен'
+        AND return_qty_checked > 0,
+        return_date
+    )                                           AS return_date,
+
+    sales_schema,
+
+    warehouse_name,
+    region,
+
+    your_price,
+
+    paid_by_customer * rate_to_rub              AS paid_by_customer_rub,
+
+    price_before_discounts,
+    discount_percent,
+
+    If(
+        your_price <> 0,
+        (
+            your_price
+            - paid_by_customer * rate_to_rub
+        ) / your_price * 100
+    )                                           AS spp_percent,
+
+    your_price
+        - paid_by_customer * rate_to_rub         AS spp_amount,
+
+    quantity                                    AS order_qty,
+
+    If(
+        row_status = 'Доставлен',
+        quantity,
+        0
+    )                                           AS buyout_qty,
+
+    If(
+        row_status = 'Доставлен',
+        return_qty_checked,
+        0
+    )                                           AS return_qty,
+
+    If(
+        row_status = 'Доставлен',
+        quantity - return_qty_checked,
+        0
+    )                                           AS sale_qty,
+
+    If(
+        row_status = 'Отменён',
+        quantity,
+        0
+    )                                           AS cancel_qty
+
+RESIDENT ozon_postings_checked;
+
+
+STORE stg_ozon_orders_sales
+INTO [lib://QVD_STG_OZON/stg_ozon_orders_sales.qvd] (qvd);
+
+DROP TABLE ozon_postings_checked;
+DROP TABLE stg_ozon_orders_sales;

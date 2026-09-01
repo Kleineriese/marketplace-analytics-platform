@@ -1,0 +1,230 @@
+// =====================================================
+// 02_TRANSFORM_YM
+// Order status history → one row per order / product
+// =====================================================
+
+
+// -----------------------------------------------------
+// 1. Raw order history
+// -----------------------------------------------------
+
+ym_raw:
+LOAD
+    cabinet_id,
+    product_id,
+    cabinet_id & '|' & product_id              AS product_key,
+
+    order_id,
+    creation_date                               AS order_date,
+
+    mp_model                                    AS sales_schema,
+    offer_status,
+    status_changed,
+
+    shipment_warehouse                          AS warehouse_name,
+    delivery_region                             AS region,
+
+    partner_price_for_delivery                  AS price_before_discounts,
+    billing_price                               AS your_price,
+    buyer_payment_amount                        AS paid_by_customer_rub,
+
+    transferred_for_delivery,
+    delivered_or_returned
+
+FROM [lib://QVD_RAW_YM/raw_models_ordersandofferstx.qvd] (qvd);
+
+
+// -----------------------------------------------------
+// 2. Status flags
+// -----------------------------------------------------
+
+ym_history:
+NOCONCATENATE
+LOAD
+    *,
+
+    If(Match(
+        offer_status,
+        'Доставлен покупателю',
+        'Возврат передан вам',
+        'Возврат отправлен',
+        'Возврат готов к передаче вам',
+        'Возврат принят',
+        'Возврат оформлен',
+        'Возврат на реализации'
+    ), 1, 0)                                    AS isSale,
+
+    If(Match(
+        offer_status,
+        'Отменён',
+        'Невыкуп передан вам',
+        'Невыкуп готов к передаче вам',
+        'Невыкуп отправлен',
+        'Невыкуп принят',
+        'Невыкуп на реализации'
+    ), 1, 0)                                    AS isCancel,
+
+    If(Match(
+        offer_status,
+        'Возврат передан вам',
+        'Возврат отправлен',
+        'Возврат готов к передаче вам',
+        'Возврат принят',
+        'Возврат оформлен',
+        'Возврат на реализации'
+    ), 1, 0)                                    AS isReturn
+
+RESIDENT ym_raw;
+
+DROP TABLE ym_raw;
+
+
+// -----------------------------------------------------
+// 3. Last known state
+// -----------------------------------------------------
+
+ym_last_timestamp:
+LOAD
+    product_key,
+    order_id,
+    Max(Timestamp(status_changed))              AS last_status_changed
+
+RESIDENT ym_history
+
+GROUP BY
+    product_key,
+    order_id;
+
+
+INNER JOIN (ym_history)
+LOAD
+    product_key,
+    order_id,
+    last_status_changed                         AS status_changed
+RESIDENT ym_last_timestamp;
+
+DROP TABLE ym_last_timestamp;
+
+
+ym_last_rows:
+NOCONCATENATE
+LOAD *
+RESIDENT ym_history;
+
+
+// -----------------------------------------------------
+// 4. Lifecycle events across full status history
+// -----------------------------------------------------
+
+ym_lifecycle:
+LOAD
+    product_key,
+    order_id,
+
+    Max(isSale)                                 AS isSale,
+    Max(isCancel)                               AS isCancel,
+    Max(isReturn)                               AS isReturn,
+
+    Min(If(isSale   = 1, Timestamp(status_changed))) AS sale_date,
+    Min(If(isCancel = 1, Timestamp(status_changed))) AS cancel_date,
+    Min(If(isReturn = 1, Timestamp(status_changed))) AS return_date
+
+RESIDENT ym_history
+
+GROUP BY
+    product_key,
+    order_id;
+
+
+LEFT JOIN (ym_last_rows)
+LOAD *
+RESIDENT ym_lifecycle;
+
+DROP TABLE ym_lifecycle;
+DROP TABLE ym_history;
+
+
+// -----------------------------------------------------
+// 5. Final YM staging
+// -----------------------------------------------------
+
+stg_ym_orders_sales:
+NOCONCATENATE
+LOAD
+    product_key,
+    cabinet_id,
+    product_id,
+
+    order_id                                    AS order_number,
+
+    order_date,
+    sale_date,
+    cancel_date,
+    return_date,
+
+    sales_schema,
+
+    warehouse_name,
+    region,
+
+    your_price,
+    paid_by_customer_rub,
+    price_before_discounts,
+
+    If(
+        price_before_discounts <> 0,
+        (
+            price_before_discounts
+            - your_price
+        ) / price_before_discounts * 100
+    )                                           AS discount_percent,
+
+    If(
+        your_price <> 0,
+        (
+            your_price - paid_by_customer_rub
+        ) / your_price * 100
+    )                                           AS spp_percent,
+
+    your_price - paid_by_customer_rub            AS spp_amount,
+
+    Alt(transferred_for_delivery, 0)             AS order_qty,
+
+    If(
+        isSale = 1,
+        Alt(delivered_or_returned, 0),
+        0
+    )                                           AS buyout_qty,
+
+    If(
+        isReturn = 1,
+        Alt(delivered_or_returned, 0),
+        0
+    )                                           AS return_qty,
+
+    If(
+        isSale = 1,
+        Alt(delivered_or_returned, 0),
+        0
+    )
+    -
+    If(
+        isReturn = 1,
+        Alt(delivered_or_returned, 0),
+        0
+    )                                           AS sale_qty,
+
+    If(
+        isCancel = 1,
+        Alt(transferred_for_delivery, 0),
+        0
+    )                                           AS cancel_qty
+
+RESIDENT ym_last_rows;
+
+
+STORE stg_ym_orders_sales
+INTO [lib://QVD_STG_YM/stg_ym_orders_sales.qvd] (qvd);
+
+DROP TABLE ym_last_rows;
+DROP TABLE stg_ym_orders_sales;

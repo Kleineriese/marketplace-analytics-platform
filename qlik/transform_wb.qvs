@@ -1,0 +1,192 @@
+// =====================================================
+// 02_TRANSFORM_WB
+// Orders + Sales + Returns → unified WB staging
+// =====================================================
+
+
+// -----------------------------------------------------
+// 1. Orders
+// -----------------------------------------------------
+
+orders:
+LOAD
+    cabinet_id,
+    product_id,
+    cabinet_id & '|' & product_id              AS product_key,
+
+    srid                                        AS order_number,
+    date                                        AS order_date,
+    cancelDate                                  AS cancel_date,
+
+    warehouseName                               AS order_warehouse_name,
+    warehouseType                               AS order_warehouse_type,
+    countryName                                 AS order_country,
+    oblastOkrugName                             AS order_oblast_okrug,
+    regionName                                  AS order_region,
+
+    totalPrice                                  AS order_price_before_discounts,
+    discountPercent                             AS order_discount_percent,
+    spp                                         AS order_spp_percent,
+    finishedPrice                               AS order_paid_by_customer_rub,
+    priceWithDisc                               AS order_your_price,
+
+    isCancel                                    AS order_is_cancel
+
+FROM [lib://QVD_RAW_WB/raw_models_orders.qvd] (qvd);
+
+
+// -----------------------------------------------------
+// 2. Sales / buyouts
+// -----------------------------------------------------
+
+sales:
+LOAD
+    srid,
+
+    date                                        AS sale_date,
+    warehouseName                               AS sale_warehouse_name,
+    warehouseType                               AS sale_warehouse_type,
+    countryName                                 AS sale_country,
+    oblastOkrugName                             AS sale_oblast_okrug,
+    regionName                                  AS sale_region,
+
+    totalPrice                                  AS sale_price_before_discounts,
+    discountPercent                             AS sale_discount_percent,
+    spp                                         AS sale_spp_percent,
+    finishedPrice                               AS sale_paid_by_customer_rub,
+    priceWithDisc                               AS sale_your_price,
+
+    saleID
+
+FROM [lib://QVD_RAW_WB/raw_models_sales.qvd] (qvd)
+WHERE Left(saleID, 1) = 'S';
+
+
+// -----------------------------------------------------
+// 3. Returns
+// -----------------------------------------------------
+
+returns:
+LOAD
+    srid,
+    date                                        AS return_date,
+    saleID                                      AS return_id
+
+FROM [lib://QVD_RAW_WB/raw_models_sales.qvd] (qvd)
+WHERE Left(saleID, 1) = 'R';
+
+
+LEFT JOIN (sales)
+LOAD
+    srid,
+    return_date,
+    return_id
+RESIDENT returns;
+
+DROP TABLE returns;
+
+
+// -----------------------------------------------------
+// 4. Enrich orders with sales / returns
+// -----------------------------------------------------
+
+LEFT JOIN (orders)
+LOAD
+    srid                                        AS order_number,
+
+    sale_date,
+    return_date,
+
+    sale_warehouse_name,
+    sale_warehouse_type,
+    sale_country,
+    sale_oblast_okrug,
+    sale_region,
+
+    sale_price_before_discounts,
+    sale_discount_percent,
+    sale_spp_percent,
+    sale_paid_by_customer_rub,
+    sale_your_price,
+
+    saleID,
+    return_id
+RESIDENT sales;
+
+DROP TABLE sales;
+
+
+// -----------------------------------------------------
+// 5. Final WB staging
+// -----------------------------------------------------
+
+stg_wb_orders_sales:
+NOCONCATENATE
+LOAD
+    product_key,
+    cabinet_id,
+    product_id,
+    order_number,
+
+    order_date,
+    sale_date,
+    cancel_date,
+    return_date,
+
+    If(
+        Alt(sale_warehouse_type, order_warehouse_type) = 'Склад WB',
+        'FBO',
+        If(
+            Alt(sale_warehouse_type, order_warehouse_type) = 'Склад продавца',
+            'FBS',
+            Alt(sale_warehouse_type, order_warehouse_type)
+        )
+    )                                           AS sales_schema,
+
+    Alt(sale_warehouse_name,
+        order_warehouse_name)                   AS warehouse_name,
+
+    Alt(sale_country,
+        order_country)                          AS country,
+
+    Alt(sale_oblast_okrug,
+        order_oblast_okrug)                     AS oblast_okrug,
+
+    Alt(sale_region,
+        order_region)                           AS region,
+
+    Alt(sale_your_price,
+        order_your_price)                       AS your_price,
+
+    Alt(sale_paid_by_customer_rub,
+        order_paid_by_customer_rub)             AS paid_by_customer_rub,
+
+    Alt(sale_price_before_discounts,
+        order_price_before_discounts)           AS price_before_discounts,
+
+    Alt(sale_discount_percent,
+        order_discount_percent)                 AS discount_percent,
+
+    Alt(sale_spp_percent,
+        order_spp_percent)                      AS spp_percent,
+
+    Alt(sale_your_price, order_your_price)
+        * Alt(sale_spp_percent, order_spp_percent) / 100
+                                                AS spp_amount,
+
+    1                                           AS order_qty,
+    If(Not IsNull(saleID), 1, 0)                AS buyout_qty,
+    If(Not IsNull(return_id), 1, 0)              AS return_qty,
+    If(order_is_cancel = True(), 1, 0)           AS cancel_qty,
+
+    If(Not IsNull(saleID), 1, 0)
+        - If(Not IsNull(return_id), 1, 0)         AS sale_qty
+
+RESIDENT orders;
+
+
+STORE stg_wb_orders_sales
+INTO [lib://QVD_STG_WB/stg_wb_orders_sales.qvd] (qvd);
+
+DROP TABLE orders;
+DROP TABLE stg_wb_orders_sales;
