@@ -1,0 +1,56 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Страница-1" id="lWDff3JNMLoyg2bgugh_">
+    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="lFr2JPwM-dKAQJEMH7MN-8" edge="1" parent="1" source="UP5lyJ3M_qxJpDqNyr9g-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;align=left;fontFamily=Courier New;" target="lFr2JPwM-dKAQJEMH7MN-3" value="&lt;font style=&quot;font-size: 12px;&quot;&gt;&amp;nbsp;REST API&lt;/font&gt;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="UP5lyJ3M_qxJpDqNyr9g-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;font face=&quot;Courier New&quot;&gt;DATA SOURCES&lt;br&gt;&lt;br&gt;Wildberries / Ozon / Yandex&lt;/font&gt;" vertex="1">
+          <mxGeometry height="80" width="240" x="280" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="lFr2JPwM-dKAQJEMH7MN-9" edge="1" parent="1" source="lFr2JPwM-dKAQJEMH7MN-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="lFr2JPwM-dKAQJEMH7MN-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lFr2JPwM-dKAQJEMH7MN-3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;font face=&quot;Courier New&quot;&gt;INTERNAL API PROVIDER&lt;/font&gt;&lt;div&gt;&lt;font face=&quot;Courier New&quot;&gt;&lt;br&gt;&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-family: &amp;quot;Courier New&amp;quot;;&quot;&gt;Queues / Rate Limits / Retries&lt;/span&gt;&lt;font face=&quot;Courier New&quot;&gt;&lt;/font&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="80" width="240" x="280" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="lFr2JPwM-dKAQJEMH7MN-10" edge="1" parent="1" source="lFr2JPwM-dKAQJEMH7MN-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="lFr2JPwM-dKAQJEMH7MN-5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lFr2JPwM-dKAQJEMH7MN-4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;font face=&quot;Courier New&quot;&gt;PYTHON INGESTION&amp;nbsp;&lt;/font&gt;&lt;div&gt;&lt;font face=&quot;Courier New&quot;&gt;&lt;br&gt;~30 Methods&lt;/font&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="80" width="240" x="280" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="lFr2JPwM-dKAQJEMH7MN-11" edge="1" parent="1" source="lFr2JPwM-dKAQJEMH7MN-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontFamily=Courier New;align=left;" target="lFr2JPwM-dKAQJEMH7MN-6" value="&lt;font style=&quot;font-size: 12px;&quot;&gt;&amp;nbsp;QVD Extract&lt;/font&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lFr2JPwM-dKAQJEMH7MN-5" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;font face=&quot;Courier New&quot;&gt;POSTGRESQL DWH&lt;br&gt;&lt;br&gt;&lt;/font&gt;&lt;div&gt;&lt;font face=&quot;Courier New&quot;&gt;Source-aligned RAW&lt;br&gt;350M+ records&lt;/font&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="80" width="240" x="280" y="560" as="geometry" />
+        </mxCell>
+        <mxCell id="lFr2JPwM-dKAQJEMH7MN-12" edge="1" parent="1" source="lFr2JPwM-dKAQJEMH7MN-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="lFr2JPwM-dKAQJEMH7MN-7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lFr2JPwM-dKAQJEMH7MN-6" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;font face=&quot;Courier New&quot;&gt;QLIK SENSE&lt;br&gt;&lt;br&gt;RAW -&amp;gt; STG&amp;nbsp;&lt;/font&gt;&lt;span style=&quot;font-family: &amp;quot;Courier New&amp;quot;;&quot;&gt;-&amp;gt;&amp;nbsp;&lt;/span&gt;&lt;font face=&quot;Courier New&quot;&gt;DIM / MART&lt;/font&gt;" vertex="1">
+          <mxGeometry height="80" width="240" x="280" y="720" as="geometry" />
+        </mxCell>
+        <mxCell id="lFr2JPwM-dKAQJEMH7MN-14" edge="1" parent="1" source="lFr2JPwM-dKAQJEMH7MN-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;verticalAlign=bottom;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="lFr2JPwM-dKAQJEMH7MN-15">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="400" y="1200" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lFr2JPwM-dKAQJEMH7MN-7" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;font face=&quot;Courier New&quot;&gt;BI PRODUCTS&lt;/font&gt;&lt;div&gt;&lt;font face=&quot;Courier New&quot;&gt;&lt;br&gt;Sales | Warehouse | KPI | ...&lt;/font&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="80" width="240" x="280" y="880" as="geometry" />
+        </mxCell>
+        <mxCell id="lFr2JPwM-dKAQJEMH7MN-15" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;autosize=1;resizable=0;" value="&lt;font face=&quot;Courier New&quot;&gt;BUSINESS STAKEHOLDERS&lt;/font&gt;" vertex="1">
+          <mxGeometry height="30" width="170" x="315" y="1000" as="geometry" />
+        </mxCell>
+        <mxCell id="lFr2JPwM-dKAQJEMH7MN-18" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;" value="" vertex="1">
+          <mxGeometry height="1040" width="320" x="240" y="40" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
