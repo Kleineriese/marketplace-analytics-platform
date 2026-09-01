@@ -183,7 +183,7 @@ Data is extracted from PostgreSQL into QVD files and transformed through:
 
 **RAW → STG → DIM / MART**
 
-This layer standardizes marketplace-specific structures and prepares reusable analytical datasets.
+This layer standardizes marketplace-specific structures and prepares reusable analytical datasets. 
 
 ### 6. BI Products
 
