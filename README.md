@@ -1,114 +1,75 @@
 # Marketplace Analytics Platform
 
-> End-to-end analytics platform for a multi-marketplace e-commerce business, integrating Wildberries, Ozon and Yandex Market data into a unified analytical environment.
+> End-to-end analytics platform unifying Wildberries, Ozon and Yandex Market data into a centralized PostgreSQL DWH and Qlik Sense analytical environment.
 
-The platform consolidates marketplace, ERP and operational data into a PostgreSQL DWH and provides reusable analytical models and BI applications in Qlik Sense.
+## Executive Summary
 
-It was built to replace fragmented reporting and manual data preparation with a scalable analytics foundation for sales, assortment, pricing and warehouse operations.
+I designed and developed the analytical layer of a marketplace data platform for a multi-billion-ruble e-commerce business operating across Wildberries, Ozon and Yandex Market.
 
----
+Before the project, analytics relied on marketplace dashboards, 1C reports, Excel exports and ad-hoc data extraction. Historical data was fragmented, metric definitions differed between sources, and many cross-marketplace analyses required days of manual preparation.
 
-## Overview
+The platform established a reusable analytical foundation across **6 seller accounts, 2M+ products, 5M+ marketplace listings and 350M+ analytical records**.
 
-The project started with a business request to segment and analyze a large marketplace assortment.
+My role covered analytical architecture, data modeling, API specifications, data validation, marketplace normalization, Qlik transformation layers and BI development. Production API ingestion was implemented by a Python developer based on my specifications.
 
-The initial analysis quickly revealed a more fundamental problem: the company did not have a centralized analytical data platform.
-
-Historical data was fragmented across marketplace dashboards, APIs, 1C ERP, Excel exports and internal systems. Different teams used different data sources and metric definitions, while important historical data such as stock levels, funnel metrics and search positions was not consistently retained.
-
-Instead of building another isolated report, I proposed and designed a reusable analytics platform that could support both the original assortment task and future analytical use cases.
-
-The resulting solution covers the full analytical flow:
-
-**Data Sources → API Integration → PostgreSQL DWH → Qlik Transformation Layer → Analytical Models → BI Products**
+The platform now supports unified sales analytics, SKU scoring and assortment management, pricing analytics, warehouse performance management, and cohort/unit economics analysis.
 
 ---
 
-## Business Context
+## At a Glance
 
-The company operates a large marketplace business across:
-
-- Wildberries
-- Ozon
-- Yandex Market
-
-The assortment consists primarily of automotive parts and includes millions of physical products and marketplace listings distributed across multiple seller accounts and fulfillment models.
-
-Before the project, there was no dedicated analytical platform or unified BI environment.
-
-Marketplace managers primarily relied on:
-
-- marketplace native dashboards;
-- 1C reports;
-- manual Excel exports;
-- ad-hoc API extracts.
-
-Answering a new cross-marketplace business question could take from several hours to several days, and some analyses could not be reproduced historically because the required data had never been stored.
+| | |
+|---|---|
+| **Role** | Data Analyst / Analytics Platform Owner |
+| **Scale** | 2M+ products · 5M+ listings · 350M+ records |
+| **Sources** | Wildberries · Ozon · Yandex Market · 1C |
+| **Stack** | PostgreSQL · Python · SQL · Qlik Sense |
+| **Core contribution** | Architecture · Data modeling · Marketplace normalization · BI |
+| **Users** | CEO · Marketplace managers · Warehouse team |
 
 ---
 
-## The Problem
+## Business Problem
 
-The main challenges were not visualization-related. They were caused by the absence of a consistent analytical data foundation.
+The project originally started as a request to segment and analyze a large marketplace assortment. It quickly became clear that sustainable product analytics required solving a more fundamental data problem.
 
-### Fragmented data
+The company had no centralized analytical platform. Marketplace managers primarily worked with native marketplace dashboards, 1C reports and manual Excel exports.
 
-Wildberries, Ozon and Yandex Market expose different entities, identifiers, statuses and business logic.
+This created four major limitations:
 
-The same business concept — for example, an order, sale, cancellation or return — can be represented differently across marketplace APIs.
+- **Fragmented data** — Wildberries, Ozon and Yandex Market use different entities, identifiers, statuses and business logic.
+- **Missing history** — important historical data such as stock levels, funnel metrics and search positions was not consistently retained.
+- **Inconsistent metrics** — revenue, buyouts, cancellations and returns could be calculated differently across reports and teams.
+- **Limited scalability** — manual analysis could answer individual questions but could not support millions of products and recurring analytical workflows.
 
-### No unified product model
-
-A single physical product may have multiple marketplace listings and marketplace-specific identifiers.
-
-Without a common product key, cross-marketplace product analytics was difficult to maintain consistently.
-
-### Missing historical data
-
-Some marketplace interfaces provide only limited historical visibility.
-
-Without regularly collecting API data, it was impossible to reliably analyze historical stock levels, search positions, funnel metrics and other operational indicators.
-
-### Inconsistent metrics
-
-Different reports and teams could calculate revenue, buyouts, cancellations and returns using different logic.
-
-This created multiple versions of the same business metric.
-
-### Limited scalability
-
-Manual Excel-based analysis could work for individual questions but could not support millions of products, multiple marketplaces and recurring analytical workflows.
+A new cross-marketplace business question could require from several hours to several days of data preparation, while some historical analyses were impossible because the required data had never been stored.
 
 ---
 
 ## My Role
 
-**Role:** Data Analyst / Analytics Platform Owner
+**Data Analyst / Analytics Platform Owner**
 
-I was hired as a Data Analyst and became responsible for the analytical design and development of the platform.
+I owned the analytical side of the solution from business requirements to production BI.
 
 My responsibilities included:
 
-- gathering analytical requirements from business stakeholders;
+- gathering requirements from business stakeholders;
 - identifying and evaluating marketplace API methods;
-- defining required datasets, update strategies, keys and expected data grain;
-- specifying full and incremental ingestion requirements;
+- defining datasets, data grain, business keys and loading strategies;
+- specifying pagination, incremental loading and duplicate-handling requirements;
 - validating ingested data against APIs and source systems;
-- designing the analytical architecture;
-- selecting PostgreSQL and Qlik Sense as the core analytical stack;
-- designing RAW, staging, dimension and mart structures;
+- designing the analytical architecture and data models;
 - writing SQL for validation and analysis;
-- developing Qlik transformation logic and QVD layers;
-- designing unified marketplace data models;
+- developing Qlik transformation and QVD layers;
+- normalizing marketplace-specific business logic;
 - developing BI applications and business metrics;
 - administering the Qlik Sense analytical environment;
-- prioritizing further development of the analytical platform.
+- prioritizing further development of the analytics platform.
 
-Production API ingestion was implemented by a Python developer based on the analytical specifications I prepared.
+Production API ingestion was implemented by a Python developer based on my analytical specifications.
 
 Infrastructure and virtual machine administration were handled by the system administrator.
-
-This allowed me to focus on analytical architecture, data modeling, validation and business-facing analytics rather than infrastructure engineering.
 
 ---
 
@@ -124,107 +85,215 @@ This allowed me to focus on analytical architecture, data modeling, validation a
 | PostgreSQL DWH | **150GB+** |
 | Marketplace API methods | **~30** |
 | BI users | **10+** |
-| Marketplaces | **Wildberries, Ozon, Yandex Market** |
-
-The platform supports a multi-billion-ruble marketplace business and continues to grow as new analytical use cases are added.
+| Marketplaces | **3** |
 
 ---
+
+# Technical Deep Dive
 
 ## Solution Architecture
 
 ![Marketplace Analytics Platform Architecture](docs/architecture.png)
 
-The analytical platform consists of several layers.
+Marketplace data is collected through an internal API provider responsible for request queues, rate limits and retries.
 
-### 1. Data Sources
+For each required dataset, I defined the analytical specification: API method, required fields, expected grain, business keys, pagination, full or incremental loading strategy, duplicate handling and validation requirements.
 
-The main data sources include:
+Production ingestion was then implemented in Python based on these specifications.
 
-- Wildberries API;
-- Ozon API;
-- Yandex Market API;
-- 1C ERP;
-- internal product and operational systems.
-
-### 2. Internal API Provider
-
-Marketplace API requests pass through an internal API service responsible for:
-
-- request queues;
-- marketplace rate limits;
-- retries.
-
-### 3. Python Ingestion
-
-Approximately 30 API methods are collected on scheduled loads.
-
-For each dataset, the analytical specification defines:
-
-- API method;
-- required fields;
-- pagination logic;
-- full or incremental loading strategy;
-- business keys;
-- expected grain;
-- duplicate handling;
-- validation requirements.
-
-Individual ingestion processes are independent, so failure of one source does not stop the entire data load.
-
-### 4. PostgreSQL DWH
-
-Source data is stored in PostgreSQL in source-aligned RAW tables.
-
-The DWH currently contains more than 350 million records.
-
-### 5. Qlik Analytical Layer
-
-Data is extracted from PostgreSQL into QVD files and transformed through:
+Source-aligned data is stored in PostgreSQL and extracted into QVD files. The analytical transformation layer follows the general pattern:
 
 **RAW → STG → DIM / MART**
 
-This layer standardizes marketplace-specific structures and prepares reusable analytical datasets. 
+Individual ingestion processes are independent, preventing a failure in one marketplace source from stopping the entire daily load.
 
-### 6. BI Products
-
-The analytical layer supports multiple applications including:
-
-- unified marketplace sales analytics;
-- warehouse performance analytics;
-- manager KPI analytics;
-- assortment and SKU analysis;
-- pricing analytics;
-- cohort and unit economics analysis.
+The resulting analytical models are used by multiple Qlik Sense applications rather than being built separately for each dashboard.
 
 ---
 
-## Data Pipeline & Warehouse
+## Unified Analytical Model
 
-PostgreSQL was selected as the analytical database because it was already supported within the company, required no additional database technology to operate and was sufficient for the current daily batch workload.
+One of the main modeling challenges was creating consistent analytical entities across marketplaces with fundamentally different data structures.
 
-The ingestion layer preserves marketplace-specific structures in source-aligned RAW tables.
+![Unified Marketplace Data Model](docs/data-model.png)
 
-Instead of immediately forcing all sources into a common schema, transformations are performed downstream where marketplace semantics can be explicitly mapped.
+### Product Identity
 
-The current pipeline can be summarized as:
+A single physical product can have multiple marketplace listings with different identifiers across Wildberries, Ozon and Yandex Market.
 
-```text
-Marketplace APIs
-       ↓
-Internal API Provider
-       ↓
-Python Ingestion
-       ↓
-PostgreSQL RAW
-       ↓
-QVD Extract
-       ↓
-Qlik STG
-       ↓
-DIM / MART
-       ↓
-BI Applications
-```
+The internal `code_1c` is used as the shared business key connecting these listings.
+
+The analytical model therefore separates two grains:
+
+- **`dim_product_master`** — one physical product per `code_1c`;
+- **`dim_marketplace_product`** — one marketplace listing.
+
+This enables cross-marketplace product analytics without losing marketplace-level granularity.
+
+### Unified Sales Fact
+
+Marketplace-specific order and sales structures are transformed into a common analytical fact containing standardized concepts such as:
+
+- order and sale dates;
+- quantities;
+- revenue;
+- cancellations;
+- returns;
+- buyouts;
+- fulfillment model;
+- marketplace product identity.
+
+The goal is not to assume that marketplace entities are identical, but to explicitly map their different semantics into a shared analytical model.
+
+---
+
+## Marketplace Normalization
+
+Each marketplace has its own order lifecycle, identifiers and status model. A significant part of the analytical work was converting these source-specific structures into consistent business semantics.
+
+### Wildberries
+
+Wildberries orders and sales are transformed into a common staging structure with standardized product keys, lifecycle dates, quantities, revenue and status flags.
+
+[`transform_wb.qvs`](qlik/transform_wb.qvs)
+
+### Ozon
+
+Ozon FBO and FBS data are normalized into the same analytical structure, including fulfillment-specific logic, financial fields, cancellations, returns and currency normalization.
+
+[`transform_ozon.qvs`](qlik/transform_ozon.qvs)
+
+### Yandex Market
+
+Yandex Market provides order status history rather than the same sales structure used by the other marketplaces.
+
+The transformation reconstructs the analytical order lifecycle and derives standardized event dates and status flags.
+
+[`transform_yandex.qvs`](qlik/transform_yandex.qvs)
+
+The resulting staging datasets are combined into a unified marketplace sales fact:
+
+[`build_unified_sales_mart.qvs`](qlik/build_unified_sales_mart.qvs)
+
+The product identity layer is built separately:
+
+[`build_product_model.qvs`](qlik/build_product_model.qvs)
+
+---
+
+## BI & Analytics
+
+The platform provides reusable analytical models for multiple business processes rather than isolated dashboards.
+
+### Unified Sales Analytics
+
+![Unified Sales Dashboard](docs/unified-sales-dashboard.png)
+
+The application provides a single analytical view across marketplaces and seller accounts.
+
+Business users can move from company-level performance to marketplace, account, category, brand, geography and individual product analysis without manually combining reports from different sources.
+
+The model includes common business metrics such as revenue, buyout rate, cancellation rate and return rate while preserving marketplace-specific dimensions where required.
+
+<details>
+<summary><strong>View underlying Qlik data model</strong></summary>
+
+<br>
+
+![Unified Sales Qlik Data Model](docs/qlik-sales-data-model.png)
+
+</details>
+
+---
+
+### Warehouse Operations Analytics
+
+![Warehouse Operations Dashboard](docs/warehouse-dashboard.png)
+
+The warehouse analytical model combines operational events with warehouse, product, employee, role and operation attributes.
+
+It supports analysis of processing volume, processing time, workload distribution and operational performance across warehouses and operation types.
+
+The same data foundation is also used for warehouse KPI and performance-management analytics.
+
+<details>
+<summary><strong>View underlying Qlik data model</strong></summary>
+
+<br>
+
+![Warehouse Qlik Data Model](docs/qlik-warehouse-data-model.png)
+
+</details>
+
+---
+
+## Business Impact
+
+The primary result of the project is not a single dashboard but a reusable analytical foundation.
+
+Before the platform, cross-marketplace analysis often required manual exports and repeated data preparation. Historical analysis was limited by whichever data happened to be available at the time.
+
+The platform established persistent historical data and standardized analytical entities that can be reused across projects.
+
+It enabled several downstream analytical initiatives:
+
+- **SKU Scoring & Assortment Management** — combining historical sales, funnel, stock and product data to analyze a multi-million-product assortment.
+- **Pricing Analytics** — analyzing prices, marketplace discounts, logistics costs and product economics.
+- **Warehouse Performance Management** — analyzing operational performance by warehouse, operation, employee and product.
+- **Cohort & Unit Economics Analysis** — evaluating order lifecycle, buyouts, cancellations and returns.
+- **Ad-hoc Business Analysis** — answering many recurring questions directly from reusable models instead of rebuilding datasets from source exports.
+
+Analyses that previously required days of manual data preparation can now often be performed in minutes through existing analytical models and BI applications.
+
+Most importantly, new analytical projects no longer need to rebuild the marketplace data foundation from scratch.
+
+---
+
+## Technical Decisions & Trade-offs
+
+### PostgreSQL as the DWH
+
+**Decision:** use PostgreSQL rather than introduce an additional analytical database.
+
+**Why:** PostgreSQL was already supported within the company and was sufficient for the primarily scheduled daily analytical workload. Introducing another database would have increased operational complexity without a clear immediate business benefit.
+
+**Trade-off:** as data volume, concurrency or near-real-time requirements grow, a specialized analytical database could become worth evaluating.
+
+---
+
+### Source-Aligned RAW Layer
+
+**Decision:** store marketplace data close to its original source structure before semantic normalization.
+
+**Why:** marketplace APIs have different structures and business semantics. Preserving source-level data reduces ingestion complexity and makes source-specific behavior easier to investigate.
+
+**Trade-off:** downstream transformations must explicitly handle these differences.
+
+---
+
+### Transformation Logic in Qlik
+
+**Decision:** build a significant part of the STG and MART transformation layer using Qlik Script and QVD.
+
+**Why:** this allowed rapid development of analytical models and BI applications with limited development resources.
+
+**Trade-off:** reusable transformation logic becomes more tightly coupled to the BI environment.
+
+As the platform grows, I would move more reusable STG and MART transformations into PostgreSQL and keep Qlik focused primarily on the semantic and visualization layer.
+
+---
+
+### Scheduled Pipeline Execution
+
+**Decision:** use scheduled loads with time buffers rather than introduce a dedicated orchestration platform during the initial implementation.
+
+**Why:** the platform primarily operates as a daily batch workflow, and the small team prioritized delivering the analytical foundation over adding infrastructure complexity.
+
+**Trade-off:** dependencies become harder to manage as the number of pipelines grows.
+
+---
+
+### Data Quality
 
 Data validation currently includes:
 
@@ -235,305 +304,37 @@ Data validation currently includes:
 - selective comparison with marketplace APIs and 1C;
 - reference data validation.
 
-Most validation is currently performed manually during development and investigation.
+A significant part of these checks is still manual.
 
-Automated freshness, completeness and reconciliation checks are one of the planned improvements to the platform.
-
----
-
-## Unified Analytical Model
-
-The central modeling challenge was creating consistent analytical entities across marketplaces with different data models.
-
-![Unified Marketplace Data Model](docs/data-model.png)
-
-### Product hierarchy
-
-A physical product is identified internally by `code_1c`.
-
-The same physical product can have multiple marketplace listings:
-
-```text
-Physical Product
-      │
-      │ code_1c
-      ↓
-Marketplace Listings
-      ├── Wildberries nmId
-      ├── Ozon SKU
-      └── Yandex Market SKU
-```
-
-The analytical model therefore separates two concepts:
-
-### `dim_product_master`
-
-**Grain:** one physical product per `code_1c`.
-
-Represents the company's internal product entity.
-
-### `dim_marketplace_product`
-
-**Grain:** one marketplace listing.
-
-Contains marketplace-specific product identifiers and attributes and connects them to the physical product through `code_1c`.
-
-This allows analytics both at marketplace-listing level and across all listings belonging to the same physical product.
-
----
-
-## Marketplace Data Normalization
-
-One of the most important parts of the project was normalizing marketplace-specific business logic.
-
-Each marketplace has its own order lifecycle, identifiers and status model.
-
-The transformation layer converts these structures into common analytical semantics.
-
-### Wildberries
-
-Wildberries orders and sales are transformed into a common staging structure with standardized:
-
-- product keys;
-- order and sale dates;
-- quantities;
-- revenue;
-- cancellations;
-- returns;
-- buyouts;
-- fulfillment information.
-
-Implementation example:
-
-[`transform_wb.qvs`](qlik/transform_wb.qvs)
-
-### Ozon
-
-Ozon FBO and FBS data are normalized into the same analytical structure.
-
-The transformation includes:
-
-- FBO/FBS normalization;
-- marketplace-specific identifiers;
-- financial fields;
-- order lifecycle events;
-- cancellations and returns;
-- currency normalization.
-
-Implementation example:
-
-[`transform_ozon.qvs`](qlik/transform_ozon.qvs)
-
-### Yandex Market
-
-Yandex Market provides order status history rather than exactly the same sales structure used by other marketplaces.
-
-The transformation reconstructs the analytical order lifecycle and derives standardized status flags and event dates.
-
-Implementation example:
-
-[`transform_yandex.qvs`](qlik/transform_yandex.qvs)
-
-The resulting datasets are combined into a unified marketplace sales fact.
-
-[`build_unified_sales_mart.qvs`](qlik/build_unified_sales_mart.qvs)
-
----
-
-## BI & Analytics
-
-The platform is not limited to storing data. It provides reusable analytical models that support multiple business processes.
-
-### Unified Sales Analytics
-
-![Unified Sales Dashboard](docs/unified-sales-dashboard.png)
-
-The unified sales application combines Wildberries, Ozon and Yandex Market data into a single analytical interface.
-
-It allows users to analyze:
-
-- gross and customer-paid revenue;
-- buyout rate;
-- cancellation rate;
-- return rate;
-- marketplace and seller account performance;
-- fulfillment models;
-- brands and product categories;
-- geographic distribution of orders;
-- marketplace co-financing and seller discounts.
-
-Users can move from company-level metrics to individual marketplaces, accounts, categories, brands and products without manually combining marketplace reports.
-
-The underlying Qlik associative model:
-
-![Unified Sales Qlik Data Model](docs/qlik-sales-data-model.png)
-
----
-
-### Warehouse Operations Analytics
-
-![Warehouse Operations Dashboard](docs/warehouse-dashboard.png)
-
-The warehouse analytical model combines operational events with product attributes, employee roles and operation complexity.
-
-It supports analysis of:
-
-- processed item volume;
-- average processing time;
-- throughput by warehouse;
-- workload by operation;
-- employee productivity;
-- product and brand processing complexity;
-- operational anomalies.
-
-The model is also used as a foundation for warehouse performance management and KPI calculations.
-
-The underlying Qlik associative model:
-
-![Warehouse Qlik Data Model](docs/qlik-warehouse-data-model.png)
-
----
-
-## Business Impact
-
-The primary result of the project is not a single dashboard but a reusable analytical foundation.
-
-Before the platform, many cross-marketplace questions required manual exports and data preparation.
-
-The platform made it possible to perform recurring analysis on standardized historical data and enabled several downstream analytical initiatives.
-
-Examples include:
-
-### SKU Scoring & Assortment Management
-
-Historical sales, funnel, stock and product data can be combined to segment and score a multi-million-product assortment.
-
-### Marketplace Pricing Analytics
-
-Unified financial and operational data provides the foundation for analyzing pricing, marketplace discounts, logistics costs and product economics.
-
-### Warehouse Performance Management
-
-Operational warehouse events can be analyzed at warehouse, operation, employee and product level instead of relying only on aggregate operational reports.
-
-### Unit Economics & Cohort Analysis
-
-Order lifecycle data enables cohort-based analysis of buyouts, cancellations and returns.
-
-### Faster Ad-hoc Analysis
-
-Questions that previously required manual exports and several days of data preparation can now often be investigated directly through reusable analytical models and BI applications.
-
-Most importantly, new analytical projects no longer need to rebuild the same marketplace data foundation from scratch.
-
----
-
-## Key Technical Decisions
-
-### PostgreSQL instead of introducing another analytical database
-
-The existing team already had PostgreSQL operational experience.
-
-For the current workload — primarily scheduled daily analytical processing — introducing an additional database technology would have increased operational complexity without a clear immediate business benefit.
-
-The decision can be revisited if workload patterns or performance requirements change.
-
-### Source-aligned RAW layer
-
-Marketplace data is initially stored close to the source structure.
-
-This reduces ingestion complexity and keeps marketplace-specific semantics available for downstream transformations.
-
-### Semantic normalization downstream
-
-Marketplace entities are not treated as identical simply because they have similar names.
-
-Orders, sales, cancellations and returns are normalized explicitly in the transformation layer.
-
-### Shared product identity
-
-`code_1c` acts as the business key connecting physical products with marketplace-specific listings.
-
-This enables cross-marketplace product analytics without losing marketplace-level granularity.
-
-### Qlik Sense for the analytical layer
-
-Qlik Sense provided:
-
-- an associative analytical model;
-- fast deployment of internal BI applications;
-- on-premise operation;
-- an existing environment suitable for a relatively small analytics team.
-
-It allowed the analytical layer and BI products to evolve quickly while the underlying DWH was being developed.
-
----
-
-## Challenges & Trade-offs
-
-The platform was intentionally designed for a small team and rapid delivery rather than maximum engineering complexity.
-
-### Transformation logic in Qlik
-
-A significant part of STG and MART transformation currently lives in Qlik/QVD.
-
-This enabled fast development, but it also creates tighter coupling between transformation logic and the BI environment.
-
-For reusable analytical datasets, moving more transformation logic into PostgreSQL would improve reuse and make the architecture less BI-dependent.
-
-### Data quality monitoring
-
-Validation exists, but much of it is manual.
-
-As the number of sources and datasets grows, automated checks for:
-
-- freshness;
-- completeness;
-- duplicates;
-- reconciliation;
-- schema changes
-
-become increasingly valuable.
-
-### Pipeline orchestration
-
-Loads currently follow scheduled execution with time buffers rather than a fully dependency-driven orchestration model.
-
-This is sufficient for the current daily batch workflow but becomes less convenient as pipeline dependencies grow.
-
-### Version control and testing
-
-The initial platform prioritized solving the core business data problem with limited development resources.
-
-As the platform matures, stronger version control practices, automated tests and deployment processes would reduce operational risk.
+This was sufficient during the initial development stage but becomes a limitation as the number of datasets and consumers grows.
 
 ---
 
 ## What I Would Improve
 
-If I were designing the next iteration of the platform, I would prioritize:
+The next iteration of the platform would focus less on adding new BI functionality and more on strengthening the analytical engineering layer.
 
-1. **Move reusable STG and MART transformations into PostgreSQL**
+### 1. Move reusable transformations into PostgreSQL
 
-   Keep Qlik focused primarily on the semantic and visualization layer.
+Shift common STG and MART logic from Qlik into the DWH to improve reuse and reduce BI-layer coupling.
 
-2. **Introduce automated data quality checks**
+### 2. Automate data quality checks
 
-   Validate freshness, completeness, uniqueness and reconciliation for critical datasets.
+Introduce automated freshness, completeness, uniqueness and reconciliation tests for critical datasets.
 
-3. **Add proactive monitoring and alerts**
+### 3. Add proactive monitoring and alerts
 
-   Failed or delayed loads should be detected automatically rather than discovered by users.
+Failed or delayed loads should be detected automatically rather than discovered by downstream users.
 
-4. **Improve pipeline orchestration**
+### 4. Improve orchestration
 
-   Replace time-buffer-based dependencies with explicit dependency management as pipeline complexity increases.
+Move from time-buffer-based scheduling toward explicit pipeline dependency management as complexity increases.
 
-5. **Strengthen version control and automated testing**
+### 5. Strengthen version control and testing
 
-   Treat analytical transformations as production code with reviewable and testable changes.
+Treat analytical transformations as production code with reviewable changes and automated tests.
 
-These changes were not required to prove the initial business value of the platform, but become increasingly important as the analytical environment scales.
+These improvements were not necessary to establish the initial business value of the platform, but they become increasingly important as the analytical environment scales.
 
 ---
 
@@ -545,8 +346,8 @@ These changes were not required to prove the initial business value of the platf
 | API Integration | REST API |
 | Ingestion | Python |
 | Data Warehouse | PostgreSQL |
-| Analytical Storage | QVD |
 | Transformation | SQL, Qlik Script |
+| Analytical Storage | QVD |
 | BI | Qlik Sense |
 | Data Modeling | Fact / Dimension analytical models |
 | Version Control | Git / GitHub |
@@ -565,7 +366,7 @@ This repository contains simplified and anonymized examples of the transformatio
 | [`build_unified_sales_mart.qvs`](qlik/build_unified_sales_mart.qvs) | Unified marketplace sales fact |
 | [`build_product_model.qvs`](qlik/build_product_model.qvs) | Marketplace and master product dimensions |
 
-The examples focus on the analytical approach rather than reproducing the complete production implementation.
+The examples demonstrate the analytical approach rather than reproduce the complete production implementation.
 
 ---
 
